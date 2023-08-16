@@ -1,11 +1,9 @@
-# Warn if the monthly costs increase more than a certain percentage
-warn[sprintf("monthly cost increase greater than %d%% (%.2f%%)", [threshold, percentage_increase])] {
-  threshold := 5
-  previous_cost := to_number(input.third_party_metadata.infracost.projects[0].pastBreakdown.totalMonthlyCost)
-  previous_cost > 0
+package terraform
 
-  monthly_cost := to_number(input.third_party_metadata.infracost.projects[0].breakdown.totalMonthlyCost)
-  percentage_increase := ((monthly_cost - previous_cost) / previous_cost) * 100
+import input.tfrun as tfrun
 
-  percentage_increase > threshold
+deny[reason] {
+    cost_delta = tfrun.cost_estimate.delta_monthly_cost
+    cost_delta > 10
+    reason := sprintf("Plan is too expensive: $%.2f, while up to $10 is allowed", [cost_delta])
 }
